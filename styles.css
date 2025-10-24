@@ -1,0 +1,232 @@
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    touch-action: manipulation;
+    background: none;
+}
+
+#background-image {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: -1;
+    opacity: 1;
+}
+
+.game-container {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1100px;
+    color: #e0e0e0;
+}
+
+.header-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.header-btn {
+    background: #87CEFA;
+    border: 2px solid #87CEFA;
+    padding: 10px 25px;
+    font-size: 18px;
+    border-radius: 20px;
+    color: #1a1a1a;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(135, 206, 250, 0.5);
+    transition: all 0.3s;
+    cursor: default;
+    text-transform: uppercase;
+}
+
+.header-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(135, 206, 250, 0.7);
+}
+
+.game-layout {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 30px;
+    width: 100%;
+}
+
+#reference-image {
+    flex-shrink: 0;
+}
+
+#reference-image img {
+    width: 200px;
+    height: 200px;
+    border: 3px solid #00ccff;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
+    transition: transform 0.3s;
+}
+
+#reference-image img:hover {
+    transform: scale(1.05);
+}
+
+.game-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+#puzzle-board {
+    display: grid;
+    grid-template-columns: repeat(4, 100px);
+    grid-template-rows: repeat(4, 100px);
+    gap: 3px;
+    background: transparent;
+    padding: 15px;
+    border: 3px solid #00ccff;
+    border-radius: 15px;
+    box-shadow: 0 0 25px rgba(0, 204, 255, 0.5);
+    margin: 0 auto 25px;
+    max-width: 400px;
+    max-height: 400px;
+    overflow: hidden;
+    visibility: visible;
+}
+
+.tile {
+    background-size: 400px 400px !important;
+    background-image: url('knight.jpg');
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
+    touch-action: manipulation;
+}
+
+.tile:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px #00ffcc, inset 0 0 12px rgba(0, 0, 0, 0.6);
+}
+
+.tile.empty {
+    background: transparent !important;
+    background-image: none !important;
+    box-shadow: none;
+    border: none;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+button {
+    background: linear-gradient(45deg, #00ff88, #00ccff);
+    border: none;
+    padding: 15px 30px;
+    font-size: 18px;
+    border-radius: 25px;
+    color: #1a1a1a;
+    cursor: pointer;
+    margin: 0;
+    font-weight: bold;
+    box-shadow: 0 5px 15px rgba(0, 204, 255, 0.6);
+    transition: all 0.3s;
+    touch-action: manipulation;
+}
+
+button:disabled {
+    background: #444;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 204, 255, 0.8);
+}
+
+#leaderboard {
+    width: 300px;
+    padding: 10px;
+}
+
+#leaderboard-header {
+    background: #FFFFFF;
+    border: 2px solid #FFFFFF;
+    padding: 10px;
+    font-size: 24px;
+    border-radius: 0;
+    color: #1a1a1a;
+    font-weight: 700;
+    text-align: center;
+    width: 100%;
+    box-shadow: 0 4px 12px rgba(255, 255, 255, 0.5);
+    transition: all 0.3s;
+    margin-bottom: 15px;
+}
+
+#leaderboard-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(255, 255, 255, 0.7);
+}
+
+#leaderboard table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#leaderboard th,
+#leaderboard td {
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
+}
+
+#leaderboard th {
+    background: #FFFFFF;
+    color: #000000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 900px) {
+    .game-layout {
+        flex-direction: column;
+        align-items: center;
+    }
+    #reference-image {
+        margin: 0 auto;
+    }
+    .game-content {
+        width: 100%;
+    }
+    .button-container {
+        flex-direction: column;
+        gap: 5px;
+    }
+    .header-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+    #leaderboard {
+        width: 100%;
+        max-width: 300px;
+        margin: 20px 0 0;
+    }
+}
