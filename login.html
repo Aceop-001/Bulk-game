@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             height: 100vh;
-            background-image: url('custom-background.jpg'); /* Replace with your image filename */
+            background-image: url('custom-background.jpg');
             background-size: cover;
             background-position: center;
             display: flex;
@@ -64,12 +64,25 @@
     <script>
         function enterGame() {
             const username = document.getElementById('username').value.trim();
-            if (username) {
+            console.log('Entered username:', username);
+            if (username && username.length > 0) {
                 localStorage.setItem('username', username);
+                console.log('Redirecting to index.html');
                 window.location.href = 'index.html';
             } else {
                 alert('Please enter a name!');
             }
+        }
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                enterGame();
+            }
+        });
+        // Ensure login page loads first
+        if (!localStorage.getItem('username')) {
+            console.log('No username in localStorage, staying on login page');
+        } else {
+            window.location.href = 'index.html'; // Auto-redirect if username exists
         }
     </script>
 </body>
