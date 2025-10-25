@@ -11,7 +11,7 @@ let timerInterval = null;
 let gameStarted = false; // Track if game has started
 let isShuffled = false; // Track if puzzle has been shuffled
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || []; // Initialize or load leaderboard
-const currentDate = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }); // 09:10 PM IST, October 24, 2025
+const currentDate = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }); // 07:05 PM IST, October 25, 2025
 
 // Display username
 function displayUsername() {
@@ -177,8 +177,10 @@ function createBoard() {
             const row = Math.floor(i / SIZE);
             const col = i % SIZE;
             tile.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
+            tile.style.backgroundImage = `url('knight.jpg')`; // Explicit for non-empty
         } else {
             tile.classList.add('empty');
+            tile.style.backgroundImage = 'none'; // Explicit for empty
         }
         
         tile.addEventListener('click', handleTileClick);
@@ -265,10 +267,12 @@ function swapTiles(index1, index2) {
         tiles[index1].classList.remove('empty');
         tiles[index2].classList.add('empty');
         tiles[index1].style.backgroundImage = `url('knight.jpg')`;
+        tiles[index2].style.backgroundImage = 'none';
     } else {
         tiles[index2].classList.remove('empty');
         tiles[index1].classList.add('empty');
         tiles[index2].style.backgroundImage = `url('knight.jpg')`;
+        tiles[index1].style.backgroundImage = 'none';
     }
     
     emptyIndex = index1;
@@ -333,26 +337,9 @@ function startGame() {
     }
 }
 
-// Reset game
-function resetGame() {
-    if (timerInterval) {
-        stopTimer();
-    }
-    moves = 0;
-    gameStarted = false;
-    isShuffled = false;
-    startTime = null;
-    document.getElementById('start-btn').disabled = true;
-    createBoard();
-    updateStats();
-    displayLeaderboard(leaderboard); // Initial display with unique best scores
-    console.log('Game reset');
-}
-
 // Button listeners
 document.getElementById('shuffle-btn').addEventListener('click', shuffle);
 document.getElementById('start-btn').addEventListener('click', startGame);
-document.getElementById('reset-btn').addEventListener('click', resetGame);
 
 // Initialize game
 document.addEventListener('DOMContentLoaded', () => {
