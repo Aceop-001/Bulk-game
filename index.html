@@ -3,46 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Slide Puzzle</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Login - Bulk Slide Puzzle</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-image: url('custom-background.jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .login-container {
+            text-align: center;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+        .prompt {
+            color: #00bfff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        input {
+            background: rgba(0, 0, 0, 0.6);
+            border: none;
+            color: white;
+            padding: 10px;
+            width: 200px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #00ff88;
+            border: none;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+        button:hover {
+            background: #00cc66;
+        }
+    </style>
 </head>
 <body>
-    <img src="background.jpg" alt="Background Image" id="background-image">
-    <div class="game-container">
-        <div class="header-container">
-            <button id="username-display" class="header-btn">Guest</button>
-            <button id="moves-btn" class="header-btn">Moves: 0</button>
-            <button id="time-btn" class="header-btn">Time: 00:00</button>
-        </div>
-        <div class="game-layout">
-            <div id="reference-image">
-                <img src="knight.jpg" alt="Reference Image">
-            </div>
-            <div class="game-content">
-                <div id="puzzle-board"></div>
-                <div class="button-container">
-                    <button id="shuffle-btn">Shuffle</button>
-                    <button id="start-btn" disabled>Start</button>
-                    <button id="reset-btn">Reset</button>
-                </div>
-            </div>
-            <div id="leaderboard">
-                <button id="leaderboard-header">Leaderboard</button>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Rank</th>
-                            <th>Name</th>
-                            <th>Moves</th>
-                            <th>Timing</th>
-                        </tr>
-                    </thead>
-                    <tbody id="leaderboard-body">
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="login-container">
+        <div class="prompt">Name ?</div>
+        <input type="text" id="username" placeholder="">
+        <button onclick="enterGame()">Enter</button>
     </div>
-    <script src="script.js"></script>
+    <script>
+        function enterGame() {
+            const username = document.getElementById('username').value.trim();
+            console.log('Entered username:', username);
+            if (username && username.length > 0) {
+                localStorage.setItem('username', username);
+                console.log('Redirecting to login.html');
+                window.location.href = 'login.html';
+            } else {
+                alert('Please enter a name!');
+            }
+        }
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                enterGame();
+            }
+        });
+    </script>
 </body>
 </html>
