@@ -6,11 +6,12 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    /* Removed overflow: hidden to allow scrolling on mobile */
     touch-action: manipulation;
     background: none;
 }
 
+/* Keep background image behavior */
 #background-image {
     position: fixed;
     top: 0;
@@ -26,9 +27,12 @@ body {
     text-align: center;
     position: relative;
     z-index: 1;
-    width: 100%;
-    max-width: 1100px;
+    width: 100%; /* Full width on mobile */
+    max-width: 1100px; /* Still cap on larger screens */
     color: #e0e0e0;
+    /* Added to enable scrolling if content overflows */
+    overflow-y: auto;
+    max-height: 100vh; /* Limit to viewport height */
 }
 
 .header-container {
@@ -63,6 +67,7 @@ body {
     align-items: flex-start;
     gap: 30px;
     width: 100%;
+    /* Removed fixed height to allow natural flow */
 }
 
 #reference-image {
@@ -100,9 +105,9 @@ body {
     border-radius: 15px;
     box-shadow: 0 0 25px rgba(0, 204, 255, 0.5);
     margin: 0 auto 25px;
-    max-width: 400px;
-    max-height: 400px;
-    overflow: hidden;
+    max-width: 400px; /* Keep proportional */
+    max-height: 400px; /* Keep proportional */
+    overflow: hidden; /* Still hide overflow within grid */
     visibility: visible;
 }
 
@@ -204,7 +209,7 @@ button:hover:not(:disabled) {
     color: #000000;
 }
 
-/* Responsive adjustments */
+/* Enhanced responsive adjustments */
 @media (max-width: 900px) {
     .game-layout {
         flex-direction: column;
@@ -228,5 +233,16 @@ button:hover:not(:disabled) {
         width: 100%;
         max-width: 300px;
         margin: 20px 0 0;
+    }
+    body {
+        padding: 10px; /* Reduce padding on mobile */
+    }
+    .game-container {
+        max-height: none; /* Allow full scrollable height */
+        overflow-y: auto; /* Enable vertical scrolling */
+    }
+    #puzzle-board {
+        max-width: 100%; /* Scale to screen width */
+        max-height: auto; /* Adjust height dynamically */
     }
 }
