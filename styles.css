@@ -6,12 +6,11 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Removed overflow: hidden to allow scrolling on mobile */
+    overflow: hidden; /* Keep for PC, but allow scrolling on mobile via media query */
     touch-action: manipulation;
     background: none;
 }
 
-/* Keep background image behavior */
 #background-image {
     position: fixed;
     top: 0;
@@ -21,18 +20,19 @@ body {
     object-fit: cover;
     z-index: -1;
     opacity: 1;
+    will-change: transform; /* Optimize for mobile rendering */
 }
 
 .game-container {
     text-align: center;
     position: relative;
     z-index: 1;
-    width: 100%; /* Full width on mobile */
-    max-width: 1100px; /* Still cap on larger screens */
+    width: 100%;
+    max-width: 1100px;
     color: #e0e0e0;
-    /* Added to enable scrolling if content overflows */
-    overflow-y: auto;
-    max-height: 100vh; /* Limit to viewport height */
+    overflow-y: auto; /* Enable scrolling if content overflows */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    max-height: 100vh;
 }
 
 .header-container {
@@ -51,9 +51,10 @@ body {
     color: #1a1a1a;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(135, 206, 250, 0.5);
-    transition: all 0.3s;
+    transition: transform 0.3s ease; /* Smoother transition */
     cursor: default;
     text-transform: uppercase;
+    will-change: transform; /* Optimize for animation */
 }
 
 .header-btn:hover {
@@ -67,7 +68,6 @@ body {
     align-items: flex-start;
     gap: 30px;
     width: 100%;
-    /* Removed fixed height to allow natural flow */
 }
 
 #reference-image {
@@ -80,7 +80,7 @@ body {
     border: 3px solid #00ccff;
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
-    transition: transform 0.3s;
+    transition: transform 0.3s ease; /* Smoother transition */
 }
 
 #reference-image img:hover {
@@ -105,10 +105,11 @@ body {
     border-radius: 15px;
     box-shadow: 0 0 25px rgba(0, 204, 255, 0.5);
     margin: 0 auto 25px;
-    max-width: 400px; /* Keep proportional */
-    max-height: 400px; /* Keep proportional */
-    overflow: hidden; /* Still hide overflow within grid */
+    max-width: 400px;
+    max-height: 400px;
+    overflow: hidden;
     visibility: visible;
+    will-change: contents; /* Optimize grid for mobile */
 }
 
 .tile {
@@ -116,9 +117,10 @@ body {
     background-image: url('knight.jpg');
     border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s ease; /* Reduced box-shadow transition for smoothness */
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
     touch-action: manipulation;
+    will-change: transform; /* GPU acceleration for tile swaps */
 }
 
 .tile:hover {
@@ -152,8 +154,9 @@ button {
     margin: 0;
     font-weight: bold;
     box-shadow: 0 5px 15px rgba(0, 204, 255, 0.6);
-    transition: all 0.3s;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smoother button transitions */
     touch-action: manipulation;
+    will-change: transform; /* Optimize for mobile taps */
 }
 
 button:disabled {
@@ -183,8 +186,9 @@ button:hover:not(:disabled) {
     text-align: center;
     width: 100%;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.5);
-    transition: all 0.3s;
+    transition: transform 0.3s ease; /* Smoother header transition */
     margin-bottom: 15px;
+    will-change: transform;
 }
 
 #leaderboard-header:hover {
@@ -209,11 +213,17 @@ button:hover:not(:disabled) {
     color: #000000;
 }
 
-/* Enhanced responsive adjustments */
+/* Enhanced responsive adjustments for mobile */
 @media (max-width: 900px) {
+    body {
+        padding: 10px; /* Reduce padding on mobile for more space */
+        overflow-y: auto; /* Enable vertical scrolling */
+        -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+    }
     .game-layout {
         flex-direction: column;
         align-items: center;
+        gap: 15px; /* Reduce gap on mobile */
     }
     #reference-image {
         margin: 0 auto;
@@ -234,15 +244,14 @@ button:hover:not(:disabled) {
         max-width: 300px;
         margin: 20px 0 0;
     }
-    body {
-        padding: 10px; /* Reduce padding on mobile */
-    }
-    .game-container {
-        max-height: none; /* Allow full scrollable height */
-        overflow-y: auto; /* Enable vertical scrolling */
-    }
     #puzzle-board {
-        max-width: 100%; /* Scale to screen width */
-        max-height: auto; /* Adjust height dynamically */
+        max-width: 100%; /* Scale to fit mobile screen */
+        max-height: auto; /* Dynamic height for better fit */
+    }
+    .tile {
+        transition: transform 0.15s ease; /* Faster transition on mobile for less lag */
+    }
+    button {
+        transition: transform 0.2s ease; /* Faster button animations on mobile */
     }
 }
