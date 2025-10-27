@@ -9,6 +9,7 @@ body {
     overflow: hidden; /* Keep for PC, but allow scrolling on mobile via media query */
     touch-action: manipulation;
     background: none;
+    position: relative; /* For positioning completed message */
 }
 
 #background-image {
@@ -96,31 +97,34 @@ body {
 
 #puzzle-board {
     display: grid;
-    grid-template-columns: repeat(4, 100px);
-    grid-template-rows: repeat(4, 100px);
+    grid-template-columns: repeat(4, 90px); /* Reduced to 90px */
+    grid-template-rows: repeat(4, 90px); /* Reduced to 90px */
     gap: 3px;
     background: transparent;
     padding: 15px;
     border: 3px solid #00ccff;
-    border-radius: 15px;
+    border-radius: 15px; /* Restored rounded corners */
     box-shadow: 0 0 25px rgba(0, 204, 255, 0.5);
     margin: 0 auto 25px;
-    max-width: 400px;
-    max-height: 400px;
+    max-width: 360px; /* Reduced from 420px */
+    max-height: 360px; /* Reduced from 420px */
     overflow: hidden;
     visibility: visible;
     will-change: contents; /* Optimize grid for mobile */
 }
 
 .tile {
-    background-size: 400px 400px !important;
+    background-size: 360px 360px !important; /* Match board size for clarity */
     background-image: url('knight.jpg');
+    background-repeat: no-repeat; /* Prevent tiling */
     border-radius: 8px;
     cursor: pointer;
     transition: transform 0.2s ease; /* Reduced box-shadow transition for smoothness */
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
     touch-action: manipulation;
     will-change: transform; /* GPU acceleration for tile swaps */
+    /* Optional: Remove if image looks better smooth */
+    /* image-rendering: pixelated; */
 }
 
 .tile:hover {
@@ -146,17 +150,19 @@ body {
 button {
     background: linear-gradient(45deg, #00ff88, #00ccff);
     border: none;
-    padding: 15px 30px;
-    font-size: 18px;
-    border-radius: 25px;
+    padding: 8px 16px; /* Reduced from 15px 30px */
+    font-size: 14px; /* Reduced from 18px */
+    border-radius: 20px;
     color: #1a1a1a;
     cursor: pointer;
     margin: 0;
     font-weight: bold;
-    box-shadow: 0 5px 15px rgba(0, 204, 255, 0.6);
-    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smoother button transitions */
+    box-shadow: 0 4px 12px rgba(0, 204, 255, 0.6);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     touch-action: manipulation;
-    will-change: transform; /* Optimize for mobile taps */
+    will-change: transform;
+    min-height: 44px; /* Minimum tap area for iPhone */
+    box-sizing: border-box; /* Ensure padding fits within height */
 }
 
 button:disabled {
@@ -167,7 +173,7 @@ button:disabled {
 
 button:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 204, 255, 0.8);
+    box-shadow: 0 6px 18px rgba(0, 204, 255, 0.8);
 }
 
 #leaderboard {
@@ -186,7 +192,7 @@ button:hover:not(:disabled) {
     text-align: center;
     width: 100%;
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.5);
-    transition: transform 0.3s ease; /* Smoother header transition */
+    transition: transform 0.3s ease;
     margin-bottom: 15px;
     will-change: transform;
 }
@@ -216,14 +222,14 @@ button:hover:not(:disabled) {
 /* Enhanced responsive adjustments for mobile */
 @media (max-width: 900px) {
     body {
-        padding: 10px; /* Reduce padding on mobile for more space */
-        overflow-y: auto; /* Enable vertical scrolling */
-        -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+        padding: 10px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
     .game-layout {
         flex-direction: column;
         align-items: center;
-        gap: 15px; /* Reduce gap on mobile */
+        gap: 15px;
     }
     #reference-image {
         margin: 0 auto;
@@ -245,13 +251,55 @@ button:hover:not(:disabled) {
         margin: 20px 0 0;
     }
     #puzzle-board {
-        max-width: 100%; /* Scale to fit mobile screen */
-        max-height: auto; /* Dynamic height for better fit */
+        max-width: 100%;
+        max-height: auto;
     }
     .tile {
-        transition: transform 0.15s ease; /* Faster transition on mobile for less lag */
+        transition: transform 0.15s ease;
     }
     button {
-        transition: transform 0.2s ease; /* Faster button animations on mobile */
+        width: 100%; /* Full width for better tap area on mobile */
+        padding: 8px 16px; /* Consistent with base style */
+        font-size: 14px; /* Consistent with base style */
+    }
+}
+
+/* Desktop adjustments */
+@media (min-width: 901px) {
+    button {
+        padding: 15px 30px; /* Restore original size for desktop */
+        font-size: 18px; /* Restore original font size */
+        width: auto; /* Reset to auto width */
+    }
+}
+
+/* Completed Message Styles */
+#completed-message {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 40px;
+    font-weight: bold;
+    color: #00ff88;
+    text-shadow: 0 0 10px #00ccff, 0 0 20px #00ff88;
+    opacity: 0;
+    z-index: 10;
+    pointer-events: none; /* Prevent interaction */
+    animation: fadeInScale 1.5s ease-in-out forwards;
+}
+
+@keyframes fadeInScale {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+    }
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
     }
 }
