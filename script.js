@@ -13,6 +13,19 @@ let isShuffled = false; // Track if puzzle has been shuffled
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || []; // Initialize or load leaderboard
 const currentDate = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }); // 07:05 PM IST, October 25, 2025
 
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCVWGY6kKJLY6bOtBBEWB6RCy1G-lYAju8",
+  authDomain: "bulkpuzzlegame.firebaseapp.com",
+  databaseURL: "https://bulkpuzzlegame-default-rtdb.firebaseio.com",
+  projectId: "bulkpuzzlegame",
+  storageBucket: "bulkpuzzlegame.firebasestorage.app",
+  messagingSenderId: "1025824950502",
+  appId: "1:1025824950502:web:504710f7a5797ee141d327",
+  measurementId: "G-EC84K1VGCZ"
+};
+
+
 // Display username
 function displayUsername() {
     const username = localStorage.getItem('username') || 'Guest';
