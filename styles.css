@@ -6,10 +6,10 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden; /* Keep for PC, but allow scrolling on mobile via media query */
+    overflow: hidden;
     touch-action: manipulation;
     background: none;
-    position: relative; /* For positioning completed message */
+    position: relative;
 }
 
 #background-image {
@@ -21,7 +21,7 @@ body {
     object-fit: cover;
     z-index: -1;
     opacity: 1;
-    will-change: transform; /* Optimize for mobile rendering */
+    will-change: transform;
 }
 
 .game-container {
@@ -31,8 +31,8 @@ body {
     width: 100%;
     max-width: 1100px;
     color: #e0e0e0;
-    overflow-y: auto; /* Enable scrolling if content overflows */
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     max-height: 100vh;
 }
 
@@ -52,10 +52,10 @@ body {
     color: #1a1a1a;
     font-weight: bold;
     box-shadow: 0 4px 12px rgba(135, 206, 250, 0.5);
-    transition: transform 0.3s ease; /* Smoother transition */
+    transition: transform 0.3s ease;
     cursor: default;
     text-transform: uppercase;
-    will-change: transform; /* Optimize for animation */
+    will-change: transform;
 }
 
 .header-btn:hover {
@@ -81,7 +81,7 @@ body {
     border: 3px solid #00ccff;
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0, 204, 255, 0.5);
-    transition: transform 0.3s ease; /* Smoother transition */
+    transition: transform 0.3s ease;
 }
 
 #reference-image img:hover {
@@ -95,36 +95,35 @@ body {
     width: 100%;
 }
 
+/* 3x3 Puzzle Board */
 #puzzle-board {
     display: grid;
-    grid-template-columns: repeat(4, 90px); /* Reduced to 90px */
-    grid-template-rows: repeat(4, 90px); /* Reduced to 90px */
+    grid-template-columns: repeat(3, 100px);
+    grid-template-rows: repeat(3, 100px);
     gap: 3px;
     background: transparent;
     padding: 15px;
     border: 3px solid #00ccff;
-    border-radius: 15px; /* Restored rounded corners */
+    border-radius: 15px;
     box-shadow: 0 0 25px rgba(0, 204, 255, 0.5);
     margin: 0 auto 25px;
-    max-width: 360px; /* Reduced from 420px */
-    max-height: 360px; /* Reduced from 420px */
+    max-width: 300px;
+    max-height: 300px;
     overflow: hidden;
     visibility: visible;
-    will-change: contents; /* Optimize grid for mobile */
+    will-change: contents;
 }
 
 .tile {
-    background-size: 360px 360px !important; /* Match board size for clarity */
+    background-size: 300px 300px !important;
     background-image: url('knight.jpg');
-    background-repeat: no-repeat; /* Prevent tiling */
+    background-repeat: no-repeat;
     border-radius: 8px;
     cursor: pointer;
-    transition: transform 0.2s ease; /* Reduced box-shadow transition for smoothness */
+    transition: transform 0.2s ease;
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.6);
     touch-action: manipulation;
-    will-change: transform; /* GPU acceleration for tile swaps */
-    /* Optional: Remove if image looks better smooth */
-    /* image-rendering: pixelated; */
+    will-change: transform;
 }
 
 .tile:hover {
@@ -150,8 +149,8 @@ body {
 button {
     background: linear-gradient(45deg, #00ff88, #00ccff);
     border: none;
-    padding: 8px 16px; /* Reduced from 15px 30px */
-    font-size: 14px; /* Reduced from 18px */
+    padding: 8px 16px;
+    font-size: 14px;
     border-radius: 20px;
     color: #1a1a1a;
     cursor: pointer;
@@ -161,8 +160,8 @@ button {
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     touch-action: manipulation;
     will-change: transform;
-    min-height: 44px; /* Minimum tap area for iPhone */
-    box-sizing: border-box; /* Ensure padding fits within height */
+    min-height: 44px;
+    box-sizing: border-box;
 }
 
 button:disabled {
@@ -219,7 +218,7 @@ button:hover:not(:disabled) {
     color: #000000;
 }
 
-/* Enhanced responsive adjustments for mobile */
+/* Mobile Responsive */
 @media (max-width: 900px) {
     body {
         padding: 10px;
@@ -258,22 +257,21 @@ button:hover:not(:disabled) {
         transition: transform 0.15s ease;
     }
     button {
-        width: 100%; /* Full width for better tap area on mobile */
-        padding: 8px 16px; /* Consistent with base style */
-        font-size: 14px; /* Consistent with base style */
+        width: 100%;
+        padding: 8px 16px;
+        font-size: 14px;
     }
 }
 
-/* Desktop adjustments */
 @media (min-width: 901px) {
     button {
-        padding: 15px 30px; /* Restore original size for desktop */
-        font-size: 18px; /* Restore original font size */
-        width: auto; /* Reset to auto width */
+        padding: 15px 30px;
+        font-size: 18px;
+        width: auto;
     }
 }
 
-/* Completed Message Styles */
+/* Completed Message */
 #completed-message {
     position: absolute;
     top: 50%;
@@ -285,21 +283,13 @@ button:hover:not(:disabled) {
     text-shadow: 0 0 10px #00ccff, 0 0 20px #00ff88;
     opacity: 0;
     z-index: 10;
-    pointer-events: none; /* Prevent interaction */
+    pointer-events: none;
     animation: fadeInScale 1.5s ease-in-out forwards;
+    display: none;
 }
 
 @keyframes fadeInScale {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.5);
-    }
-    50% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.2);
-    }
-    100% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }

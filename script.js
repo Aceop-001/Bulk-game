@@ -1,20 +1,19 @@
 // Game setup
-const SIZE = 4; // Kept as 4x4 grid
-const TOTAL_TILES = SIZE * SIZE - 1; // 15 tiles + 1 empty (16 total)
+const SIZE = 3; // 3x3 grid
+const TOTAL_TILES = SIZE * SIZE - 1; // 8 tiles + 1 empty
 let tiles = [];
 let moves = 0;
-let emptyIndex = TOTAL_TILES; // Empty space starts at last position
+let emptyIndex = TOTAL_TILES; // Empty starts at bottom-right (index 8)
 let touchStartX = 0;
 let touchStartY = 0;
-let startTime = null; // Start time will be set on Start button
+let startTime = null;
 let timerInterval = null;
-let gameStarted = false; // Track if game has started
-let isShuffled = false; // Track if puzzle has been shuffled
-let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || []; // Initialize or load leaderboard
-let playerMove = false; // Flag to track player-initiated moves
-const currentDate = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }); // 09:44 PM IST, October 27, 2025
+let gameStarted = false;
+let isShuffled = false;
+let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
+let playerMove = false;
 
-// Firebase configuration (provided by you)
+// Firebase config (your real one)
 const firebaseConfig = {
   apiKey: "AIzaSyCVWGY6kKJLY6bOtBBEWB6RCy1G-lYAju8",
   authDomain: "bulkpuzzlegame.firebaseapp.com",
@@ -26,63 +25,51 @@ const firebaseConfig = {
   measurementId: "G-EC84K1VGCZ"
 };
 
-// Initialize Firebase
 var app = firebase.initializeApp(firebaseConfig);
 var database = firebase.database();
 
-// Sync leaderboard with Firebase
+// === LEADERBOARD SYNC ===
 function syncLeaderboard() {
-  var dbRef = database.ref('leaderboard');
-  dbRef.on('value', (snapshot) => {
-    const onlineData = snapshot.val() || {};
-    leaderboard = Object.values(onlineData).sort((a, b) => {
-      if (a.moves !== b.moves) return a.moves - b.moves;
-      return a.time - b.time;
-    });
+  database.ref('leaderboard').on('value', (snapshot) => {
+    const data = snapshot.val() || {};
+    leaderboard = Object.values(data).sort((a, b) => a.moves - b.moves || a.time - b.time);
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-    displayLeaderboard(leaderboard); // Updated to reflect top 10 logic
-    console.log('Leaderboard synced from Firebase:', leaderboard);
-  }, (error) => {
-    console.error('Error syncing leaderboard:', error);
+    displayLeaderboard(leaderboard);
   });
 }
 
-// Display username
+// === DISPLAY USERNAME ===
 function displayUsername() {
   const username = localStorage.getItem('username') || 'Guest';
-  document.getElementById('username-display').textContent = `${username}`;
+  document.getElementById('username-display').textContent = username;
 }
 
-// Update and display stats
+// === UPDATE STATS (Moves & Time) ===
 function updateStats() {
   const movesBtn = document.getElementById('moves-btn');
   const timeBtn = document.getElementById('time-btn');
   let timeDisplay = '00:00';
   if (startTime && gameStarted) {
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
-    const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
-    const seconds = (elapsed % 60).toString().padStart(2, '0');
+    const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const seconds = String(elapsed % 60).padStart(2, '0');
     timeDisplay = `${minutes}:${seconds}`;
   }
   movesBtn.textContent = `Moves: ${moves}`;
   timeBtn.textContent = `Time: ${timeDisplay}`;
-  console.log(`Stats updated - Moves: ${moves}, Time: ${timeDisplay}`);
 }
 
-// Start timer
+// === START TIMER ===
 function startTimer() {
   if (!timerInterval && isShuffled && !gameStarted) {
     startTime = Date.now();
     timerInterval = setInterval(updateStats, 1000);
     gameStarted = true;
-    updateStats(); // Initial update
-    console.log('Timer started');
-  } else {
-    console.warn('Timer not started - Check if shuffled and not already started');
+    updateStats();
   }
 }
 
-// Stop timer
+// === STOP TIMER ===
 function stopTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -90,331 +77,218 @@ function stopTimer() {
     if (startTime) {
       const elapsed = Math.floor((Date.now() - startTime) / 1000);
       startTime = null;
-      gameStarted = false; // Reset game state
-      console.log(`Timer stopped, elapsed: ${elapsed} seconds`);
+      gameStarted = false;
       return elapsed;
     }
   }
-  console.warn('No active timer to stop');
   return 0;
 }
 
-// Update leaderboard with only the best score per user
+// === UPDATE LEADERBOARD ===
 function updateLeaderboard() {
   const username = localStorage.getItem('username') || 'Guest';
-  const time = stopTimer(); // Stop timer and get elapsed time
+  const time = stopTimer();
   const entry = { name: username, moves: moves || 0, time: time || 0 };
 
-  console.log(`Attempting to update leaderboard with entry:`, entry);
+  if (moves <= 0 || time <= 0) return;
 
-  // Validate entry (only update if puzzle is completed)
-  if (moves <= 0 || time <= 0) {
-    console.log(`Invalid score for ${username}: moves=${moves}, time=${time}`);
-    return;
-  }
-
-  // Find existing entry for this player
-  const existingIndex = leaderboard.findIndex(item => item.name === username);
-  let isBetter = true;
-  if (existingIndex !== -1) {
-    const currentBest = leaderboard[existingIndex];
-    isBetter = entry.moves < currentBest.moves || (entry.moves === currentBest.moves && entry.time < currentBest.time);
-  }
+  const existing = leaderboard.findIndex(e => e.name === username);
+  const isBetter = existing === -1 ||
+    entry.moves < leaderboard[existing].moves ||
+    (entry.moves === leaderboard[existing].moves && entry.time < leaderboard[existing].time);
 
   if (isBetter) {
-    // Update or add to Firebase
-    var dbRef = database.ref('leaderboard/' + username);
-    dbRef.set(entry).then(() => {
-      console.log('Score saved to Firebase');
-      syncLeaderboard(); // Sync to update display
-    }).catch((error) => {
-      console.error('Error saving score:', error);
+    database.ref('leaderboard/' + username).set(entry).then(() => {
+      syncLeaderboard();
     });
-  } else {
-    console.log(`New score for ${username} not better than existing`);
   }
 }
 
-// Display leaderboard with only top 10 players and rank summary for others
+// === DISPLAY LEADERBOARD ===
 function displayLeaderboard(entries) {
   const list = document.getElementById('leaderboard-body');
-  if (!list) {
-    console.error('Leaderboard body element not found!');
-    return;
-  }
+  if (!list) return;
   list.innerHTML = '';
-  const username = localStorage.getItem('username') || 'Guest';
-  const userEntry = leaderboard.find(entry => entry.name === username);
-  const userRank = userEntry ? leaderboard.findIndex(entry => entry.name === username) + 1 : -1;
-
-  if (!Array.isArray(entries) || entries.length === 0) {
-    list.innerHTML = '<tr><td colspan="4">No scores yet</td></tr>';
-    console.log('No leaderboard data to display');
-    return;
-  }
-
-  // Display top 10 entries
-  const top10 = entries.slice(0, 10); // Limit to top 10
-  top10.forEach((entry, index) => {
-    if (!entry || typeof entry !== 'object') {
-      console.warn('Invalid leaderboard entry skipped:', entry);
-      return;
-    }
+  const top10 = entries.slice(0, 10);
+  top10.forEach((entry, i) => {
     const tr = document.createElement('tr');
-    const minutes = Math.floor((entry.time || 0) / 60).toString().padStart(2, '0');
-    const seconds = ((entry.time || 0) % 60).toString().padStart(2, '0');
-    tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${entry.name || 'Unknown'}</td>
-      <td>${entry.moves || 0}</td>
-      <td>${minutes}:${seconds}</td>
-    `;
+    const mins = String(Math.floor(entry.time / 60)).padStart(2, '0');
+    const secs = String(entry.time % 60).padStart(2, '0');
+    tr.innerHTML = `<td>${i+1}</td><td>${entry.name}</td><td>${entry.moves}</td><td>${mins}:${secs}</td>`;
     list.appendChild(tr);
   });
-
-  // Handle users ranked 11th and beyond
-  const remainingCount = entries.length - 10;
-  if (remainingCount > 0) {
+  if (entries.length > 10) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td colspan="4">11th+ ${remainingCount} user${remainingCount > 1 ? 's' : ''}</td>
-    `;
+    tr.innerHTML = `<td colspan="4">11th+ ${entries.length - 10} users</td>`;
     list.appendChild(tr);
   }
-
-  console.log('Leaderboard displayed with top 10, remaining:', remainingCount, 'users, user rank:', userRank);
 }
 
-// Create puzzle board
+// === CREATE 3x3 BOARD ===
 function createBoard() {
   const board = document.getElementById('puzzle-board');
-  if (!board) {
-    console.error('Puzzle board element not found!');
-    return;
-  }
+  if (!board) return console.error('Board not found!');
   board.innerHTML = '';
-  
+  tiles = [];
+
   for (let i = 0; i < SIZE * SIZE; i++) {
     const tile = document.createElement('div');
     tile.className = 'tile';
     tile.dataset.index = i;
-    
+
     if (i < TOTAL_TILES) {
       const row = Math.floor(i / SIZE);
       const col = i % SIZE;
-      tile.style.backgroundPosition = `${-col * 90}px ${-row * 90}px`; // Updated to 90px to match CSS
-      tile.style.backgroundImage = `url('knight.jpg')`; // Explicit for non-empty
-      // Debug: Check if image loads
-      const img = new Image();
-      img.src = 'knight.jpg';
-      img.onload = () => console.log('Image loaded successfully for tile', i);
-      img.onerror = () => console.error('Image failed to load for tile', i);
+      tile.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
+      tile.style.backgroundImage = `url('knight.jpg')`;
     } else {
       tile.classList.add('empty');
-      tile.style.backgroundImage = 'none'; // Explicit for empty
+      tile.style.backgroundImage = 'none';
     }
-    
+
     tile.addEventListener('click', handleTileClick);
-    tile.addEventListener('touchstart', handleTouchStart);
-    tile.addEventListener('touchmove', handleTouchMove);
+    tile.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    });
+    tile.addEventListener('touchmove', e => e.preventDefault());
     tile.addEventListener('touchend', handleTouchEnd);
     board.appendChild(tile);
     tiles[i] = tile;
   }
-  console.log('Puzzle board created successfully');
 }
 
-// Handle tile clicks
-function handleTileClick(e) {
-  if (!gameStarted) return;
-  playerMove = true; // Mark as player-initiated
-  const clickedIndex = parseInt(e.target.dataset.index);
-  const rowClicked = Math.floor(clickedIndex / SIZE);
-  const colClicked = clickedIndex % SIZE;
-  const rowEmpty = Math.floor(emptyIndex / SIZE);
-  const colEmpty = emptyIndex % SIZE;
+// === SWAP TILES ===
+function swapTiles(i1, i2) {
+  const temp = tiles[i1].style.backgroundPosition;
+  tiles[i1].style.backgroundPosition = tiles[i2].style.backgroundPosition;
+  tiles[i2].style.backgroundPosition = temp;
 
-  if (isAdjacent(rowClicked, colClicked, rowEmpty, colEmpty)) {
-    swapTiles(clickedIndex, emptyIndex);
-  }
-}
-
-// Check if two positions are adjacent
-function isAdjacent(row1, col1, row2, col2) {
-  const rowDiff = Math.abs(row1 - row2);
-  const colDiff = Math.abs(col1 - col2);
-  
-  if (rowDiff + colDiff !== 1) return false;
-  if (row1 < 0 || row1 >= SIZE || col1 < 0 || col1 >= SIZE) return false;
-  if (row2 < 0 || row2 >= SIZE || col2 < 0 || col2 >= SIZE) return false;
-  
-  return true;
-}
-
-// Handle touch events
-function handleTouchStart(e) {
-  touchStartX = e.touches[0].clientX;
-  touchStartY = e.touches[0].clientY;
-}
-
-function handleTouchMove(e) {
-  e.preventDefault();
-}
-
-function handleTouchEnd(e) {
-  if (!gameStarted) return;
-  playerMove = true; // Mark as player-initiated
-  const touchEndX = e.changedTouches[0].clientX;
-  const touchEndY = e.changedTouches[0].clientY;
-  const deltaX = touchEndX - touchStartX;
-  const deltaY = touchEndY - touchStartY;
-  const clickedIndex = parseInt(e.target.dataset.index);
-  const rowClicked = Math.floor(clickedIndex / SIZE);
-  const colClicked = clickedIndex % SIZE;
-  const rowEmpty = Math.floor(emptyIndex / SIZE);
-  const colEmpty = emptyIndex % SIZE;
-
-  const minSwipeDistance = 50;
-  if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    if (deltaX > minSwipeDistance && colClicked < SIZE - 1 && clickedIndex + 1 === emptyIndex && isAdjacent(rowClicked, colClicked + 1, rowEmpty, colEmpty)) {
-      swapTiles(clickedIndex, emptyIndex);
-    } else if (deltaX < -minSwipeDistance && colClicked > 0 && clickedIndex - 1 === emptyIndex && isAdjacent(rowClicked, colClicked - 1, rowEmpty, colEmpty)) {
-      swapTiles(clickedIndex, emptyIndex);
-    }
+  if (tiles[i1].classList.contains('empty')) {
+    tiles[i1].classList.remove('empty');
+    tiles[i2].classList.add('empty');
+    tiles[i1].style.backgroundImage = `url('knight.jpg')`;
+    tiles[i2].style.backgroundImage = 'none';
   } else {
-    if (deltaY > minSwipeDistance && rowClicked < SIZE - 1 && clickedIndex + SIZE === emptyIndex && isAdjacent(rowClicked + 1, colClicked, rowEmpty, colEmpty)) {
-      swapTiles(clickedIndex, emptyIndex);
-    } else if (deltaY < -minSwipeDistance && rowClicked > 0 && clickedIndex - SIZE === emptyIndex && isAdjacent(rowClicked - 1, colClicked, rowEmpty, colEmpty)) {
-      swapTiles(clickedIndex, emptyIndex);
-    }
+    tiles[i2].classList.remove('empty');
+    tiles[i1].classList.add('empty');
+    tiles[i2].style.backgroundImage = `url('knight.jpg')`;
+    tiles[i1].style.backgroundImage = 'none';
   }
-}
 
-// Swap two tiles
-function swapTiles(index1, index2) {
-  const temp = tiles[index1].style.backgroundPosition;
-  tiles[index1].style.backgroundPosition = tiles[index2].style.backgroundPosition;
-  tiles[index2].style.backgroundPosition = temp;
-  
-  if (tiles[index1].classList.contains('empty')) {
-    tiles[index1].classList.remove('empty');
-    tiles[index2].classList.add('empty');
-    tiles[index1].style.backgroundImage = `url('knight.jpg')`; // Reset image
-    tiles[index2].style.backgroundImage = 'none';
-  } else {
-    tiles[index2].classList.remove('empty');
-    tiles[index1].classList.add('empty');
-    tiles[index2].style.backgroundImage = `url('knight.jpg')`; // Reset image
-    tiles[index1].style.backgroundImage = 'none';
-  }
-  
-  emptyIndex = index1;
+  emptyIndex = i1;
   moves++;
   updateStats();
-  
-  // Only check for completion on player moves
+
+  // Only check completion on player move
   if (playerMove && isSolved()) {
-    // Fill the empty tile with the correct portion of the image
+    const row = Math.floor(emptyIndex / SIZE);
+    const col = emptyIndex % SIZE;
     const emptyTile = tiles[emptyIndex];
-    const rowEmpty = Math.floor(emptyIndex / SIZE);
-    const colEmpty = emptyIndex % SIZE;
-    const correctX = -colEmpty * 90; // e.g., -270px for col 3
-    const correctY = -rowEmpty * 90; // e.g., -270px for row 3
     emptyTile.classList.remove('empty');
     emptyTile.style.backgroundImage = `url('knight.jpg')`;
-    emptyTile.style.backgroundPosition = `${correctX}px ${correctY}px`; // Set to match the missing piece
-    emptyTile.style.backgroundSize = '360px 360px'; // Ensure full image fits
+    emptyTile.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
 
-    // Show completed animation
-    let completedMsg = document.getElementById('completed-message');
-    if (!completedMsg) {
-      completedMsg = document.createElement('div');
-      completedMsg.id = 'completed-message';
-      completedMsg.textContent = 'Completed!';
-      document.body.appendChild(completedMsg);
+    // Show "Completed!" animation
+    let msg = document.getElementById('completed-message');
+    if (!msg) {
+      msg = document.createElement('div');
+      msg.id = 'completed-message';
+      msg.textContent = 'Uwu💋';
+      document.body.appendChild(msg);
     }
-    completedMsg.style.display = 'block'; // Show the message
-    setTimeout(() => {
-      completedMsg.style.display = 'none'; // Hide after 2 seconds
-    }, 2000);
+    msg.style.display = 'block';
+    setTimeout(() => msg.style.display = 'none', 2000);
 
     updateLeaderboard();
-    playerMove = false; // Reset flag after completion
+    playerMove = false;
   } else {
-    playerMove = false; // Reset flag for non-completion moves
+    playerMove = false;
   }
 }
 
-// Check if puzzle is solved
+// === IS SOLVED? ===
 function isSolved() {
   for (let i = 0; i < TOTAL_TILES; i++) {
-    const expectedX = -(i % SIZE * 90); // Updated to 90px
-    const expectedY = -(Math.floor(i / SIZE) * 90); // Updated to 90px
-    const actual = tiles[i].style.backgroundPosition;
-    if (actual !== `${expectedX}px ${expectedY}px`) {
-      return false;
-    }
+    const x = -(i % SIZE * 100);
+    const y = -(Math.floor(i / SIZE) * 100);
+    if (tiles[i].style.backgroundPosition !== `${x}px ${y}px`) return false;
   }
   return true;
 }
 
-// Shuffle puzzle
+// === SHUFFLE ===
 function shuffle() {
   if (gameStarted) return;
-  playerMove = false; // Disable completion check during shuffle
-  for (let i = 0; i < 1000; i++) {
-    const possibleMoves = [];
-    const rowEmpty = Math.floor(emptyIndex / SIZE);
-    const colEmpty = emptyIndex % SIZE;
-    
-    const left = colEmpty > 0 ? emptyIndex - 1 : -1;
-    const right = colEmpty < SIZE - 1 ? emptyIndex + 1 : -1;
-    const up = rowEmpty > 0 ? emptyIndex - SIZE : -1;
-    const down = rowEmpty < SIZE - 1 ? emptyIndex + SIZE : -1;
-    
-    if (left !== -1) possibleMoves.push(left);
-    if (right !== -1) possibleMoves.push(right);
-    if (up !== -1) possibleMoves.push(up);
-    if (down !== -1) possibleMoves.push(down);
-    
-    const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-    if (randomMove !== undefined) {
-      swapTiles(randomMove, emptyIndex);
-    }
+  playerMove = false;
+  for (let i = 0; i < 500; i++) {
+    const row = Math.floor(emptyIndex / SIZE);
+    const col = emptyIndex % SIZE;
+    const possible = [];
+    if (col > 0) possible.push(emptyIndex - 1);
+    if (col < SIZE - 1) possible.push(emptyIndex + 1);
+    if (row > 0) possible.push(emptyIndex - SIZE);
+    if (row < SIZE - 1) possible.push(emptyIndex + SIZE);
+    const move = possible[Math.floor(Math.random() * possible.length)];
+    if (move !== undefined) swapTiles(move, emptyIndex);
   }
   moves = 0;
   isShuffled = true;
   document.getElementById('start-btn').disabled = false;
   updateStats();
-  console.log('Puzzle board shuffled, Start button enabled');
 }
 
-// Start game
+// === CLICK HANDLER ===
+function handleTileClick(e) {
+  if (!gameStarted) return;
+  playerMove = true;
+  const idx = parseInt(e.target.dataset.index);
+  if (isAdjacent(idx, emptyIndex)) swapTiles(idx, emptyIndex);
+}
+
+// === TOUCH SWIPE HANDLER ===
+function handleTouchEnd(e) {
+  if (!gameStarted) return;
+  playerMove = true;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  const idx = parseInt(e.target.dataset.index);
+  let target = null;
+
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > 50 && idx % SIZE < SIZE - 1) target = idx + 1;
+    else if (dx < -50 && idx % SIZE > 0) target = idx - 1;
+  } else {
+    if (dy > 50 && Math.floor(idx / SIZE) < SIZE - 1) target = idx + SIZE;
+    else if (dy < -50 && Math.floor(idx / SIZE) > 0) target = idx - SIZE;
+  }
+
+  if (target === emptyIndex) swapTiles(idx, emptyIndex);
+}
+
+// === CHECK IF TILES ARE ADJACENT ===
+function isAdjacent(a, b) {
+  const ra = Math.floor(a / SIZE), ca = a % SIZE;
+  const rb = Math.floor(b / SIZE), cb = b % SIZE;
+  return Math.abs(ra - rb) + Math.abs(ca - cb) === 1;
+}
+
+// === START GAME ===
 function startGame() {
   if (isShuffled && !gameStarted) {
     startTimer();
-    console.log('Game started');
-  } else {
-    console.warn('Cannot start game - Check if shuffled and not already started');
   }
 }
 
-// Button listeners
+// === BUTTONS ===
 document.getElementById('shuffle-btn').addEventListener('click', shuffle);
 document.getElementById('start-btn').addEventListener('click', startGame);
 
-// Initialize game
+// === INITIALIZE ===
 document.addEventListener('DOMContentLoaded', () => {
   displayUsername();
   createBoard();
-  // Validate and clean leaderboard data on load
-  if (leaderboard && !Array.isArray(leaderboard)) {
-    console.warn('Invalid leaderboard data, resetting to empty array');
-    leaderboard = [];
-    localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-  }
-  syncLeaderboard(); // Start syncing online leaderboard
-  displayLeaderboard(leaderboard); // Initial display with top 10 logic
+  syncLeaderboard();
+  displayLeaderboard(leaderboard);
   updateStats();
-  console.log('Game initialized, leaderboard loaded:', leaderboard);
 });
